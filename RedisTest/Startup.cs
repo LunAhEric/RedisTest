@@ -23,6 +23,12 @@ namespace RedisTest
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            //µù¥U Redis
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = Configuration["RedisConfig:RedisMemoryCache"];
+            });
+
             services.AddControllersWithViews();
         }
 
