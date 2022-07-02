@@ -4,10 +4,19 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using RedisTest.Repository.Interface;
+using RedisTest.Repository;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.OpenApi.Models;
+using System.Reflection;
+using System.IO;
+using Microsoft.EntityFrameworkCore;
+using RedisTest.Models.DBEntity;
+using RedisTest.Service.Interface;
+using RedisTest.Service;
 
 namespace RedisTest
 {
@@ -23,12 +32,30 @@ namespace RedisTest
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            //µù¥U Redis
-            services.AddStackExchangeRedisCache(options =>
+            services.AddSwaggerGen(c =>
             {
-                options.Configuration = Configuration["RedisConfig:RedisMemoryCache"];
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "RedisTest", Version = "v1" });
+
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+                {
+                    { new OpenApiSecurityScheme(){ }, new List<string>() }
+                });
+
+                var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                //c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
             });
 
+            //µù¥U¸ê®Æ®w
+            services.AddDbContext<NumberDBContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("NumberDB")));
+
+            //µù¥U Redis
+            services.AddStackExchangeRedisCache(options => options.Configuration = Configuration["RedisConfig:RedisMemoryCache"]);
+            //ª`¤JService
+            services.AddTransient<INumberService, NumberService>();
+            //ª`¤JRepositorys
+            services.AddTransient<IMemoryCacheRepository, MemoryCacheRepository>();
+            services.AddTransient<IDBRepository, DBRepository>();
             services.AddControllersWithViews();
         }
 
@@ -38,6 +65,8 @@ namespace RedisTest
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseSwagger();
+                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "RedisTest"));
             }
             else
             {
