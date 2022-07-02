@@ -10,17 +10,17 @@ namespace RedisTest.Service
     public class NumberService : INumberService
     {
         private readonly IMemoryCacheRepository _memoryCache;
-        private readonly IDBRepository _dbRepository;
+        private readonly INumberRepository _numberRepository;
 
-        public NumberService(IMemoryCacheRepository memoryCache, IDBRepository dBRepository)
+        public NumberService(IMemoryCacheRepository memoryCache, INumberRepository numberRepository)
         {
             _memoryCache = memoryCache;
-            _dbRepository = dBRepository;
+            _numberRepository = numberRepository;
         }
 
         public List<NumberDto> GetAll()
         {
-            var result = _dbRepository.GetAll<Number>().Select(x => new NumberDto()
+            var result = _numberRepository.GetAll<Number>().Select(x => new NumberDto()
             {
                 Id = x.Id,
                 NumberSet = x.NumberSet,
@@ -36,7 +36,7 @@ namespace RedisTest.Service
         {
             var result = _memoryCache.Get<List<NumberDto>>("NumberSet.Num");
             if (result != null) return result;
-            result = _dbRepository.GetAll<Number>()
+            result = _numberRepository.GetAll<Number>()
                 .OrderByDescending(x => x.NumberSet)
                 .Skip(0).Take(topMax)
                 .Select(x => new NumberDto()
@@ -56,11 +56,10 @@ namespace RedisTest.Service
                 NumberSet = request.NumberSet,
             };
 
-            _dbRepository.Create(Num);
-            _memoryCache.Set("NumberSet.Num", Num);
-            _dbRepository.Save();
+            _numberRepository.Create(Num);
+            //_memoryCache.Set("NumberSet.Num", Num);
+            _numberRepository.Save();
         }
-
 
     }
 }

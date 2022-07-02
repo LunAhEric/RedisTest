@@ -55,6 +55,7 @@ namespace RedisTest
             services.AddTransient<INumberService, NumberService>();
             //ª`¤JRepositorys
             services.AddTransient<IMemoryCacheRepository, MemoryCacheRepository>();
+            services.AddTransient<INumberRepository, NumberRepository>();
             services.AddTransient<IDBRepository, DBRepository>();
             services.AddControllersWithViews();
         }
